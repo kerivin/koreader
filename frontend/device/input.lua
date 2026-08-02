@@ -488,7 +488,10 @@ function Input:routeStylusEvents()
         local is_stylus = slot.tool == TOOL_TYPE_PEN
             or slot.tool == TOOL_TYPE_ERASER
             or slot.tool == TOOL_TYPE_HIGHLIGHTER
-            or (self.pen_slot and slot.slot == self.pen_slot)
+            -- NOTE: The pen_slot fallback only applies when the driver doesn't report
+            --       a tool type at all (i.e., slot.tool is nil). If we get an explicit
+            --       TOOL_TYPE_FINGER on the pen slot, it's a finger, not a stylus!
+            or (self.pen_slot and slot.tool == nil and slot.slot == self.pen_slot)
 
         if is_stylus then
             if slot.tool == TOOL_TYPE_PEN then
