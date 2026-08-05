@@ -488,25 +488,10 @@ function Input:routeStylusEvents()
         local is_stylus = slot.tool == TOOL_TYPE_PEN
             or slot.tool == TOOL_TYPE_ERASER
             or slot.tool == TOOL_TYPE_HIGHLIGHTER
-            -- NOTE: The pen_slot fallback only applies when the driver doesn't report
-            --       a tool type at all (i.e., slot.tool is nil). If we get an explicit
-            --       TOOL_TYPE_FINGER on the pen slot, it's a finger, not a stylus!
             or (self.pen_slot and slot.tool == nil and slot.slot == self.pen_slot)
-            -- Keep dominating an on-going stylus contact even when the driver
-            -- fails to (or inconsistently) reports the tool type on follow-up
-            -- frames. Several pen panels report ABS_MT_TOOL_TYPE back to FINGER
-            -- while the pen is in contact after the initial PEN contact, which
-            -- would otherwise leak every move/lift into GestureDetector (and
-            -- text-selection / stray gestures). Track once a slot enters a
-            -- stylus contact and route/dominate it until the contact lifts.
             or (self.active_stylus_slots and self.active_stylus_slots[slot.slot])
 
         if is_stylus then
-            -- The device may report ABS_MT_TOOL_TYPE back to FINGER while the
-            -- same pen contact is still active, even though we latched it as a
-            -- stylus on the first frame. Promote such frames back to a pen so
-            -- the stylus callback keeps dominating them (a pen tool is also
-            -- expected by the highlighter/eraser remapping below).
             if slot.tool == TOOL_TYPE_FINGER
                 and self.active_stylus_slots
                 and self.active_stylus_slots[slot.slot] then
@@ -517,13 +502,11 @@ function Input:routeStylusEvents()
                 or slot.tool == TOOL_TYPE_ERASER
                 or slot.tool == TOOL_TYPE_HIGHLIGHTER)
                 and slot.id and slot.id >= 0 then
-                -- A stylus contact started (or continues reporting stylus tool).
                 if not self.active_stylus_slots then
                     self.active_stylus_slots = {}
                 end
                 self.active_stylus_slots[slot.slot] = true
             elseif slot.id and slot.id < 0 then
-                -- Contact lifted: clear the active-stylus latch for this slot.
                 if self.active_stylus_slots then
                     self.active_stylus_slots[slot.slot] = nil
                 end
