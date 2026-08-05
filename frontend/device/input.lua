@@ -489,29 +489,8 @@ function Input:routeStylusEvents()
             or slot.tool == TOOL_TYPE_ERASER
             or slot.tool == TOOL_TYPE_HIGHLIGHTER
             or (self.pen_slot and slot.slot == self.pen_slot)
-            or (self.active_stylus_slots and self.active_stylus_slots[slot.slot])
 
         if is_stylus then
-            if slot.tool == TOOL_TYPE_FINGER
-                and self.active_stylus_slots
-                and self.active_stylus_slots[slot.slot] then
-                slot.tool = TOOL_TYPE_PEN
-            end
-
-            if (slot.tool == TOOL_TYPE_PEN
-                or slot.tool == TOOL_TYPE_ERASER
-                or slot.tool == TOOL_TYPE_HIGHLIGHTER)
-                and slot.id and slot.id >= 0 then
-                if not self.active_stylus_slots then
-                    self.active_stylus_slots = {}
-                end
-                self.active_stylus_slots[slot.slot] = true
-            elseif slot.id and slot.id < 0 then
-                if self.active_stylus_slots then
-                    self.active_stylus_slots[slot.slot] = nil
-                end
-            end
-
             if slot.tool == TOOL_TYPE_PEN then
                 if self.stylus_eraser_active then
                     slot.tool = TOOL_TYPE_ERASER
