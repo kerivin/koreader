@@ -293,54 +293,6 @@ function PdfDocument:updateHighlightContents(pageno, item, contents)
     page:close()
 end
 
--- Save an ink annotation built from freehand strokes into the PDF.
---   strokes : array of strokes; each stroke is an array of { x=, y= } points in
---             native page coordinates (same convention as quad points).
---   bb_color: { r, g, b } components 0-255.
---   width   : ink border (line) width in points.
---   opacity : 0..1.
---   author  : optional /Author ownership marker.
--- Returns true on success, or the :_checkIfWritable() return value otherwise.
-function PdfDocument:saveInkAnnotation(pageno, strokes, bb_color, width, opacity, author)
-    local can_write = self:_checkIfWritable()
-    if can_write ~= true then return can_write end
-
-    self.is_edited = true
-    local page = self._document:openPage(pageno)
-    local annot = page:addInkAnnotation(strokes, bb_color, width, opacity, author)
-    page:close()
-    return annot ~= nil
-end
-
--- Delete every ink annotation matching the given /Author ownership marker on a page.
--- Returns the number of deleted annotations, or the :_checkIfWritable() return value otherwise.
-function PdfDocument:deleteInkAnnotations(pageno, author)
-    local can_write = self:_checkIfWritable()
-    if can_write ~= true then return can_write end
-
-    self.is_edited = true
-    local page = self._document:openPage(pageno)
-    local annots = page:getInkAnnotations()
-    local deleted = 0
-    for _, data in ipairs(annots) do
-        if data.author == author then
-            page:deleteAnnotation(data.annot)
-            deleted = deleted + 1
-        end
-    end
-    page:close()
-    return deleted
-end
-
--- Fetch back every /Subtype /Ink annotation present on a page.
--- Entries match page:getInkAnnotations() (annot, author, width, opacity, color, strokes).
-function PdfDocument:getInkAnnotations(pageno)
-    local page = self._document:openPage(pageno)
-    local annotations = page:getInkAnnotations()
-    page:close()
-    return annotations
-end
-
 function PdfDocument:getEmbeddedAnnotations()
     local annotations = {}
     for pageno = 1, self.info.number_of_pages do
